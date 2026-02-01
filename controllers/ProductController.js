@@ -5,10 +5,25 @@ const path = require("path");
 async function createRecord(req, res) {
   try {
     const data = new Product(req.body);
-    if (req.files) {
-      data.pic = Array.from(req.files).map((x)=>x.path.replace(/^public[\\/]/,"").replace(/\\/g,"/"))
+    if (req.files && req.files.length > 0) {
+      data.pic = req.files.map(file => file.path.replace(/^public[\/]/, "").replace(/\\/g, "/"));
     }
     await data.save();
+    let finalData = await Product.findOne({ _id: data._id })
+    .populate([
+      {
+        path: "maincategory",
+        select : "name -_id "
+      },
+      {
+        path: "subcategory",
+        select : "name -_id "
+      },
+      {
+        path: "brand",
+        select : "name -_id "
+      }
+    ])
     res.send({
       result: "Done",
       data: data,
@@ -96,25 +111,24 @@ async function updateRecord(req, res) {
     data.name = req.body.name ?? data.name;
     data.active = req.body.active ?? data.active;
 
-    if (req.file) {
+    if (req.files && req.files.length > 0) {
       try {
-        // ✅ Build correct actual file path
-        const oldFilePath = path.join(process.cwd(), "public", data.pic);
-
-        console.log("Deleting:", oldFilePath);
-
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
-          console.log("✅ Old file deleted");
-        } else {
-          console.log("❌ File not found:", oldFilePath);
+        // Delete old image files if they exist
+        if (data.pic && Array.isArray(data.pic)) {
+          data.pic.forEach(picPath => {
+            const oldFilePath = path.join(process.cwd(), "public", picPath);
+            if (fs.existsSync(oldFilePath)) {
+              fs.unlinkSync(oldFilePath);
+              console.log("✅ Old image file deleted");
+            }
+          });
         }
       } catch (err) {
         console.log("Delete error:", err.message);
       }
-
-      // ✅ Save new file path clean (no public)
-      data.pic = req.file.path.replace(/^public[\\/]/, "").replace(/\\/g, "/");
+    
+      // ✅ Save new file paths clean (no public)
+      data.pic = req.files.map(file => file.path.replace(/^public[\/]/, "").replace(/\\/g, "/"));
     }
 
     await data.save();
@@ -141,18 +155,22 @@ async function deleteRecord(req, res) {
       return res.send({ result: "Fail", reason: "Invalid ID, No record Found" });
     }
     
-    const filePath = path.join(process.cwd(), "public", data.pic);
-    
     const deletedData = await Product.findByIdAndDelete(req.params._id);
     
     if (deletedData) {
       try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log("✅ Image file deleted");
+        // Delete all associated image files
+        if (deletedData.pic && Array.isArray(deletedData.pic)) {
+          deletedData.pic.forEach(picPath => {
+            const filePath = path.join(process.cwd(), "public", picPath);
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+              console.log("✅ Image file deleted");
+            }
+          });
         }
       } catch (fileErr) {
-        console.log("Error deleting file:", fileErr.message);
+        console.log("Error deleting files:", fileErr.message);
       }
       res.send({ result: "Done", message: "Record Deleted Successfully" });
     } else {

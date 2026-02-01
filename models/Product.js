@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const BrandSchema = new mongoose.Schema({
+const ProductSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, "Product name is required"],
@@ -52,15 +52,13 @@ const BrandSchema = new mongoose.Schema({
         type: String,
         default:""
     },
-    pic:[
-
-    ],
+    pic:[String],
     active:{
         type: Boolean,
         default: true
     }
 })
 
-const Brand = new mongoose.model("Brand", BrandSchema);
+const Product = new mongoose.model("Product", ProductSchema);
 
-module.exports = Brand; 
+module.exports = Product; 

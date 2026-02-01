@@ -1,5 +1,5 @@
-const Brand = require('express').Router();
-const {brandUploder} = require("../middleware/fileUploader")
+const Product = require('express').Router();
+const {productUploder} = require("../middleware/fileUploader")
 
 const {
     createRecord,
@@ -7,13 +7,13 @@ const {
     getSingleRecord,
     updateRecord,
     deleteRecord
-} = require("../controllers/BrandController");
+} = require("../controllers/ProductController");
 
-Brand.post("/",brandUploder.single("pic"), createRecord);
-Brand.get("/", getAllRecords);
-Brand.get("/:_id", getSingleRecord);
-Brand.put("/:_id",brandUploder.single("pic"), updateRecord);
-Brand.delete("/:_id", deleteRecord);
+Product.post("/",productUploder.array("pic"), createRecord);
+Product.get("/", getAllRecords);
+Product.get("/:_id", getSingleRecord);
+Product.put("/:_id",productUploder.array("pic"), updateRecord);
+Product.delete("/:_id", deleteRecord);
 
 
-module.exports = Brand;
+module.exports = Product;
