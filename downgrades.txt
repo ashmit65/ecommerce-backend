@@ -32,3 +32,52 @@ async function updateRecord(req, res) {
         res.status(500).send({result:"Fail", reason:errorMessage})
     }
 }
+
+
+/ ***** userController password-validator ****** /
+
+async function createRecord(req, res) {
+  if(!schema.validate(req.body.password, {details: true})){
+    return res.status(400).send({result:"Fail", reason:"Password does not meet the requirements. Password must contain atleast 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, and no spaces."})
+  }else{
+    try {
+    const data = new User(req.body);
+    data.role = "Buyer"
+    await data.save();
+    res.send({
+      result: "Done",
+      data: data,
+      message: "Record Created Successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    const errorMessage = [];
+    error.errors?.keyValue?.username
+      ? errorMessage.push({ name: "User Name Already Exists" })
+      : "",
+    error.errors?.keyValue?.email
+      ? errorMessage.push({ email: "Email Already Exists" })
+      : "",
+      error.errors?.name
+        ? errorMessage.push({ name: error.errors.name.message })
+        : "";
+    error.errors?.username
+      ? errorMessage.push({ username: error.errors.username.message })
+      : "";
+    error.errors?.email
+      ? errorMessage.push({ email: error.errors.email.message })
+      : "";
+    error.errors?.phone
+      ? errorMessage.push({ phone: error.errors.phone.message })
+      : "";
+    error.errors?.password
+      ? errorMessage.push({ password: error.errors.password.message })
+      : "";
+    errorMessage.length === 0
+      ? res
+          .status(500)
+          .send({ result: "Fail", reason: "Internal server error" })
+      : res.status(500).send({ result: "Fail", reason: errorMessage });
+  }
+  }
+}

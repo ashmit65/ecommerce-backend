@@ -1,48 +1,71 @@
 const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
+const passwordValidator = require('password-validator');
+ 
+var schema = new passwordValidator();
+
+// Add properties to it
+schema
+.is().min(8)                                    // Minimum length 8
+.is().max(18)                                  // Maximum length 18
+.has().uppercase(1)                              // Must have uppercase letters
+.has().lowercase(1)                              // Must have lowercase letters
+.has().digits(1)                                // Must have at least 2 digits
+.has().not().spaces()                           // Should not have spaces
+.is().not().oneOf(['Passw0rd', 'Password123']); // Blacklist these values
 
 async function createRecord(req, res) {
+  // ✅ password-validator check (correct)
+  if (!schema.validate(req.body.password)) {
+    return res.status(400).send({
+      result: "Fail",
+      reason: "Password does not meet the requirements",
+    });
+  }
+
   try {
     const data = new User(req.body);
-    data.role = "Buyer"
+    data.role = "Buyer";
     await data.save();
-    res.send({
+
+    return res.status(201).send({
       result: "Done",
-      data: data,
+      data,
       message: "Record Created Successfully",
     });
   } catch (error) {
     console.log(error);
+
     const errorMessage = [];
-    error.errors?.keyValue?.username
-      ? errorMessage.push({ name: "User Name Already Exists" })
-      : "",
-    error.errors?.keyValue?.email
-      ? errorMessage.push({ email: "Email Already Exists" })
-      : "",
-      error.errors?.name
-        ? errorMessage.push({ name: error.errors.name.message })
-        : "";
-    error.errors?.username
-      ? errorMessage.push({ username: error.errors.username.message })
-      : "";
-    error.errors?.email
-      ? errorMessage.push({ email: error.errors.email.message })
-      : "";
-    error.errors?.phone
-      ? errorMessage.push({ phone: error.errors.phone.message })
-      : "";
-    error.errors?.password
-      ? errorMessage.push({ password: error.errors.password.message })
-      : "";
-    errorMessage.length === 0
-      ? res
-          .status(500)
-          .send({ result: "Fail", reason: "Internal server error" })
-      : res.status(500).send({ result: "Fail", reason: errorMessage });
+
+    // Mongo duplicate key errors
+    if (error.code === 11000) {
+      if (error.keyPattern?.username) {
+        errorMessage.push({ username: "User Name Already Exists" });
+      }
+      if (error.keyPattern?.email) {
+        errorMessage.push({ email: "Email Already Exists" });
+      }
+    }
+
+    // Mongoose validation errors
+    if (error.errors) {
+      Object.keys(error.errors).forEach((key) => {
+        errorMessage.push({ [key]: error.errors[key].message });
+      });
+    }
+
+    return res.status(500).send({
+      result: "Fail",
+      reason:
+        errorMessage.length > 0
+          ? errorMessage
+          : "Internal server error",
+    });
   }
 }
+
 
 async function getAllRecords(req, res) {
   try {
