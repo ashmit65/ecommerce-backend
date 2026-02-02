@@ -15,8 +15,10 @@ schema
 .has().not().spaces()                           // Should not have spaces
 .is().not().oneOf(['Passw0rd', 'Password123']); // Blacklist these values
 
+const bcrypt = require("bcrypt");
+
 async function createRecord(req, res) {
-  // ✅ password-validator check (correct)
+  // ✅ password validation
   if (!schema.validate(req.body.password)) {
     return res.status(400).send({
       result: "Fail",
@@ -25,8 +27,16 @@ async function createRecord(req, res) {
   }
 
   try {
-    const data = new User(req.body);
-    data.role = "Buyer";
+    // ✅ hash password
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+
+    // ✅ create user with hashed password
+    const data = new User({
+      ...req.body,
+      password: hashedPassword,
+      role: "Buyer",
+    });
+
     await data.save();
 
     return res.status(201).send({
@@ -39,7 +49,7 @@ async function createRecord(req, res) {
 
     const errorMessage = [];
 
-    // Mongo duplicate key errors
+    // duplicate key errors
     if (error.code === 11000) {
       if (error.keyPattern?.username) {
         errorMessage.push({ username: "User Name Already Exists" });
@@ -49,7 +59,7 @@ async function createRecord(req, res) {
       }
     }
 
-    // Mongoose validation errors
+    // validation errors
     if (error.errors) {
       Object.keys(error.errors).forEach((key) => {
         errorMessage.push({ [key]: error.errors[key].message });
@@ -65,6 +75,7 @@ async function createRecord(req, res) {
     });
   }
 }
+
 
 
 async function getAllRecords(req, res) {
