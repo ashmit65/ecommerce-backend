@@ -49,7 +49,7 @@ async function updateRecord(req, res) {
             data.name = req.body.name?? data.name;
             data.active = req.body.active?? data.active;
             await data.save()
-            res.send({result:"Done", message:"Record Updated Successfully"})
+            res.send({result:"Done", data: data, message:"Record Updated Successfully"})
         }
         else
             res.send({result:"Fail", reason:"Invalid ID, No record Found"})

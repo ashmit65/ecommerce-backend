@@ -1,13 +1,11 @@
-const Brand = require("../models/Brand");
+const Product = require("../models/Product");
 const fs = require("fs");
 const path = require("path");
 
 async function createRecord(req, res) {
   try {
-    const data = new Brand(req.body);
-    if (req.file) {
-      data.pic = req.file.path.replace(/^public[\\/]/, "").replace(/\\/g, "/");
-    }
+    const data = new Product(req.body);
+    data.role = "Buyer"
     await data.save();
     res.send({
       result: "Done",
@@ -17,14 +15,26 @@ async function createRecord(req, res) {
   } catch (error) {
     console.log(error);
     const errorMessage = [];
-    error.errors?.keyValue?.name
-      ? errorMessage.push({ name: "Brand Already Exists" })
+    error.errors?.keyValue?.username
+      ? errorMessage.push({ name: "User Name Already Exists" })
+      : "",
+    error.errors?.keyValue?.email
+      ? errorMessage.push({ email: "Email Already Exists" })
       : "",
       error.errors?.name
         ? errorMessage.push({ name: error.errors.name.message })
         : "";
-    error.errors?.pic
-      ? errorMessage.push({ pic: error.errors.pic.message })
+    error.errors?.username
+      ? errorMessage.push({ username: error.errors.username.message })
+      : "";
+    error.errors?.email
+      ? errorMessage.push({ email: error.errors.email.message })
+      : "";
+    error.errors?.phone
+      ? errorMessage.push({ phone: error.errors.phone.message })
+      : "";
+    error.errors?.password
+      ? errorMessage.push({ password: error.errors.password.message })
       : "";
     errorMessage.length === 0
       ? res
@@ -36,7 +46,7 @@ async function createRecord(req, res) {
 
 async function getAllRecords(req, res) {
   try {
-    const data = await Brand.find().sort({ _id: -1 });
+    const data = await Product.find().sort({ _id: -1 });
     res.send({ result: "Done", count: data.length, data: data });
   } catch (err) {
     res.status(500).send({ result: "Fail", reason: "Internal server error" });
@@ -45,8 +55,8 @@ async function getAllRecords(req, res) {
 
 async function getSingleRecord(req, res) {
   try {
-    // const data = await Brand.findOne().sort({_id:req.params._id});
-    const data = await Brand.findById(req.params._id);
+    // const data = await Product.findOne().sort({_id:req.params._id});
+    const data = await Product.findById(req.params._id);
 
     if (data) res.send({ result: "Done", data: data });
     else res.send({ result: "Fail", reason: "Invalid ID, No record Found" });
@@ -58,8 +68,8 @@ async function getSingleRecord(req, res) {
 
 async function updateRecord(req, res) {
   try {
-    // const data = await Brand.findOne().sort({_id:req.params._id});
-    const data = await Brand.findById(req.params._id);
+    // const data = await Product.findOne().sort({_id:req.params._id});
+    const data = await Product.findById(req.params._id);
     if (!data) {
       return res.send({
         result: "Fail",
@@ -67,6 +77,11 @@ async function updateRecord(req, res) {
       });
     }
     data.name = req.body.name ?? data.name;
+    data.phone = req.body.phone ?? data.phone;
+    data.address = req.body.address ?? data.address;
+    data.pin = req.body.pin ?? data.pin;
+    data.city = req.body.city ?? data.city;
+    data.state = req.body.state ?? data.state;
     data.active = req.body.active ?? data.active;
 
     if (req.file) {
@@ -96,7 +111,7 @@ async function updateRecord(req, res) {
     console.log(error);
     const errorMessage = [];
     error.errors?.keyValue?.name
-      ? errorMessage.push({ name: "Brand Already Exists" })
+      ? errorMessage.push({ name: "Product Already Exists" })
       : "",
       error.errors?.name
         ? errorMessage.push({ name: error.errors.name.message })
@@ -111,7 +126,7 @@ async function updateRecord(req, res) {
 
 async function deleteRecord(req, res) {
   try {
-    const data = await Brand.findById(req.params._id);
+    const data = await Product.findById(req.params._id);
     
     if (!data) {
       return res.send({ result: "Fail", reason: "Invalid ID, No record Found" });
@@ -119,7 +134,7 @@ async function deleteRecord(req, res) {
     
     const filePath = path.join(process.cwd(), "public", data.pic);
     
-    const deletedData = await Brand.findByIdAndDelete(req.params._id);
+    const deletedData = await Product.findByIdAndDelete(req.params._id);
     
     if (deletedData) {
       try {
