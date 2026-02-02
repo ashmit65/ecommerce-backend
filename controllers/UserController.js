@@ -1,10 +1,10 @@
-const Product = require("../models/Product");
+const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
 
 async function createRecord(req, res) {
   try {
-    const data = new Product(req.body);
+    const data = new User(req.body);
     data.role = "Buyer"
     await data.save();
     res.send({
@@ -46,7 +46,7 @@ async function createRecord(req, res) {
 
 async function getAllRecords(req, res) {
   try {
-    const data = await Product.find().sort({ _id: -1 });
+    const data = await User.find().sort({ _id: -1 });
     res.send({ result: "Done", count: data.length, data: data });
   } catch (err) {
     res.status(500).send({ result: "Fail", reason: "Internal server error" });
@@ -55,8 +55,8 @@ async function getAllRecords(req, res) {
 
 async function getSingleRecord(req, res) {
   try {
-    // const data = await Product.findOne().sort({_id:req.params._id});
-    const data = await Product.findById(req.params._id);
+    // const data = await User.findOne().sort({_id:req.params._id});
+    const data = await User.findById(req.params._id);
 
     if (data) res.send({ result: "Done", data: data });
     else res.send({ result: "Fail", reason: "Invalid ID, No record Found" });
@@ -68,8 +68,8 @@ async function getSingleRecord(req, res) {
 
 async function updateRecord(req, res) {
   try {
-    // const data = await Product.findOne().sort({_id:req.params._id});
-    const data = await Product.findById(req.params._id);
+    // const data = await User.findOne().sort({_id:req.params._id});
+    const data = await User.findById(req.params._id);
     if (!data) {
       return res.send({
         result: "Fail",
@@ -111,7 +111,7 @@ async function updateRecord(req, res) {
     console.log(error);
     const errorMessage = [];
     error.errors?.keyValue?.name
-      ? errorMessage.push({ name: "Product Already Exists" })
+      ? errorMessage.push({ name: "User Already Exists" })
       : "",
       error.errors?.name
         ? errorMessage.push({ name: error.errors.name.message })
@@ -126,7 +126,7 @@ async function updateRecord(req, res) {
 
 async function deleteRecord(req, res) {
   try {
-    const data = await Product.findById(req.params._id);
+    const data = await User.findById(req.params._id);
     
     if (!data) {
       return res.send({ result: "Fail", reason: "Invalid ID, No record Found" });
@@ -134,7 +134,7 @@ async function deleteRecord(req, res) {
     
     const filePath = path.join(process.cwd(), "public", data.pic);
     
-    const deletedData = await Product.findByIdAndDelete(req.params._id);
+    const deletedData = await User.findByIdAndDelete(req.params._id);
     
     if (deletedData) {
       try {

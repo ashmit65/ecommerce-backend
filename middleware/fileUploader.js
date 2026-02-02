@@ -17,5 +17,6 @@ function createUploader(folderName) {
 module.exports = {
     brandUploder : createUploader("brands"),
     productUploder : createUploader("products"),
-    testimonialUploder : createUploader("testimonials")
+    testimonialUploder : createUploader("testimonials"),
+    userUploder : createUploader("users")
 }
