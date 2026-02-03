@@ -14,15 +14,18 @@ async function createRecord(req, res) {
   } catch (error) {
     console.log(error);
     const errorMessage = [];
-    error.errors?.keyValue?.name
-      ? errorMessage.push({ name: "Cart Already Exists" })
-      : "",
-      error.errors?.name
-        ? errorMessage.push({ name: error.errors.name.message })
+      error.errors?.user
+        ? errorMessage.push({ user: error.errors.user.message })
         : "";
-    error.errors?.pic
-      ? errorMessage.push({ pic: error.errors.pic.message })
-      : "";
+      error.errors?.product
+        ? errorMessage.push({ product: error.errors.product.message })
+        : "";
+      error.errors?.qty
+        ? errorMessage.push({ qty: error.errors.qty.message })
+        : "";
+      error.errors?.total
+        ? errorMessage.push({ total: error.errors.total.message })
+        : "";
     errorMessage.length === 0
       ? res
           .status(500)
@@ -63,41 +66,12 @@ async function updateRecord(req, res) {
         reason: "Invalid ID, No record Found",
       });
     }
-    data.name = req.body.name ?? data.name;
-    data.active = req.body.active ?? data.active;
+    data.qty = req.body.qty ?? data.qty;
+    data.total = req.body.total ?? data.total;
 
-    if (req.file) {
-      try {
-        // ✅ Build correct actual file path
-        const oldFilePath = path.join(process.cwd(), "public", data.pic);
-
-        console.log("Deleting:", oldFilePath);
-
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
-          console.log("✅ Old file deleted");
-        } else {
-          console.log("❌ File not found:", oldFilePath);
-        }
-      } catch (err) {
-        console.log("Delete error:", err.message);
-      }
-
-      // ✅ Save new file path clean (no public)
-      data.pic = req.file.path.replace(/^public[\\/]/, "").replace(/\\/g, "/");
-    }
-
-    await data.save();
-    res.send({ result: "Done", data:data, message: "Recor Updated Successfully" });
-  } catch (error) {
+     } catch (error) {
     console.log(error);
-    const errorMessage = [];
-    error.errors?.keyValue?.name
-      ? errorMessage.push({ name: "Cart Already Exists" })
-      : "",
-      error.errors?.name
-        ? errorMessage.push({ name: error.errors.name.message })
-        : "";
+    
     errorMessage.length === 0
       ? res
           .status(500)
@@ -119,14 +93,6 @@ async function deleteRecord(req, res) {
     const deletedData = await Cart.findByIdAndDelete(req.params._id);
     
     if (deletedData) {
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log("✅ Image file deleted");
-        }
-      } catch (fileErr) {
-        console.log("Error deleting file:", fileErr.message);
-      }
       res.send({ result: "Done", message: "Record Deleted Successfully" });
     } else {
       res.send({ result: "Fail", reason: "Invalid ID, No record Found" });
