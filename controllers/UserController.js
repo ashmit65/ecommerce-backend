@@ -189,6 +189,22 @@ async function deleteRecord(req, res) {
   }
 }
 
+async function login(req, res){
+  try{
+    let data = await User.findOne({
+      $or:[
+        {username: req.body.username},
+        {email: req.body.username}
+      ]
+    })
+    if(data && await bcrypt.compare(req.body.password, data.password))
+      res.send({result: "Done", data})
+    else res.status(401).send({result: 'Fail', reason: 'Invalid credentials'})
+  }catch(error){
+    res.status(500).send({result:"Fail", reason:"Internal Server Error"})
+  }
+}
+
 module.exports = {
   createRecord,
   getAllRecords,
