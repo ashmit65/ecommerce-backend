@@ -6,7 +6,8 @@ const {
     getAllRecords,
     getSingleRecord,
     updateRecord,
-    deleteRecord
+    deleteRecord,
+    login
 } = require("../controllers/UserController");
 
 User.post("/",userUploder.single("pic"), createRecord);
@@ -14,6 +15,7 @@ User.get("/", getAllRecords);
 User.get("/:_id", getSingleRecord);
 User.put("/:_id",userUploder.single("pic"), updateRecord);
 User.delete("/:_id", deleteRecord);
+User.post("/login", login)
 
 
 module.exports = User;

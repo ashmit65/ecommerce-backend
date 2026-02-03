@@ -211,4 +211,5 @@ module.exports = {
   getSingleRecord,
   updateRecord,
   deleteRecord,
+  login
 };
