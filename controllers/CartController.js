@@ -1,14 +1,43 @@
 const Cart = require("../models/Cart");
 const fs = require("fs");
 const path = require("path");
+const { options } = require("../routes");
 
 async function createRecord(req, res) {
   try {
     const data = new Cart(req.body);
+    // data.pic = req.file.path.replace(/^public[\\/]/, "");
     await data.save();
+    let finalData = await Cart.findOne({ _id: data._id }).populate([
+      {
+        path:"user",
+        select:"name"
+      },
+      {
+        path:"product",
+        select:"name maincategory subcategory brand color size finalPrice pic stockQuantity",
+        options:{
+          slice:{pic:1}
+        },
+        populate:[
+          {
+            path:"maincategory",
+            select:"name "
+          },
+          {
+            path:"subcategory",
+            select:"name "
+          },
+          {
+            path:"brand",
+            select:"name "
+          },
+        ]
+      }
+    ])
     res.send({
       result: "Done",
-      data: data,
+      finalData,
       message: "Record Created Successfully",
     });
   } catch (error) {

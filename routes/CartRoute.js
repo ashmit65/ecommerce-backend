@@ -6,7 +6,7 @@ const {
     getSingleRecord,
     updateRecord,
     deleteRecord
-} = require("../controllers/BrandController");
+} = require("../controllers/CartController");
 
 CartRoute.post("/", createRecord);
 CartRoute.get("/", getAllRecords);
